@@ -22,6 +22,7 @@ use iCal::Parser;
 
 use Data::ICal;
 use Data::ICal::Entry::Event;
+use DateTime::Format::ICal;
 
 my @files = glob("cache/*.ics");
 
@@ -40,9 +41,15 @@ for my $year (sort {$a < $b} keys %{$hash->{events}}) {
     for my $day (sort {$a < $b} keys %{$hash->{events}->{$year}->{$month}}) {
       for my $event (keys %{$hash->{events}->{$year}->{$month}->{$day}}) {
         my $calevent=Data::ICal::Entry::Event->new();
+print "hop\n";
         for my $tag (keys %{$hash->{events}->{$year}->{$month}->{$day}->{$event}}) {
  	  unless( ($tag eq 'idref') or ($tag eq 'allday') or ($tag eq 'hours') or ($tag eq 'ATTENDEE') ) {
-            $calevent->add_property($tag => $hash->{events}->{$year}->{$month}->{$day}->{$event}->{$tag});
+	    if(UNIVERSAL::isa($hash->{events}->{$year}->{$month}->{$day}->{$event}->{$tag},'DateTime')) {
+              #$calevent->add_property($tag => $hash->{events}->{$year}->{$month}->{$day}->{$event}->{$tag});
+              $calevent->add_property($tag => DateTime::Format::ICal->format_datetime($hash->{events}->{$year}->{$month}->{$day}->{$event}->{$tag}));
+	    } else {
+              $calevent->add_property($tag => $hash->{events}->{$year}->{$month}->{$day}->{$event}->{$tag});
+	    }
 	  }
 	}
 	$cal->add_entry($calevent);
